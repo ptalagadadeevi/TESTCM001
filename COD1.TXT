@@ -1,0 +1,1069 @@
+OBJECT Codeunit 1 ApplicationManagement
+{
+  OBJECT-PROPERTIES
+  {
+    Date=06/12/17;
+    Time=12:37:16;
+    Modified=Yes;
+    Version List=NAVW110.00.00.18976;
+  }
+  PROPERTIES
+  {
+    OnRun=BEGIN
+          END;
+
+  }
+  CODE
+  {
+    VAR
+      DebuggerManagement@1017 : Codeunit 9500;
+      LogInManagement@1027 : Codeunit 40;
+      TextManagement@1003 : Codeunit 41;
+      CaptionManagement@1000 : Codeunit 42;
+      LanguageManagement@1002 : Codeunit 43;
+      AutoFormatManagement@1012 : Codeunit 45;
+      NotSupportedErr@1004 : TextConst 'ENU=The value is not supported.;ENG=The value is not supported.';
+      "**COSL**"@1000000004 : Integer;
+      mdlUserUtils@1000000003 : Codeunit 60851;
+      mdlFileMgt@1000000000 : Codeunit 419;
+      mdlCOSLUtils@1000000001 : Codeunit 60800;
+
+    PROCEDURE CompanyOpen@30();
+    BEGIN
+      // This needs to be the very first thing to run before company open
+      CODEUNIT.RUN(CODEUNIT::"Azure AD User Management");
+      OnBeforeCompanyOpen;
+      LogInManagement.CompanyOpen;
+      OnAfterCompanyOpen;
+    END;
+
+    PROCEDURE GetSystemIndicator@51(VAR Text@1000 : Text[250];VAR Style@1001 : 'Standard,Accent1,Accent2,Accent3,Accent4,Accent5,Accent6,Accent7,Accent8,Accent9');
+    VAR
+      CompanyInformation@1002 : Record 79;
+    BEGIN
+      IF CompanyInformation.GET THEN
+        CompanyInformation.GetSystemIndicator(Text,Style);
+      OnAfterGetSystemIndicator(Text,Style);
+    END;
+
+    PROCEDURE CompanyClose@31();
+    BEGIN
+      OnBeforeCompanyClose;
+      LogInManagement.CompanyClose;
+      OnAfterCompanyClose;
+    END;
+
+    PROCEDURE FindPrinter@11(ReportID@1000 : Integer) : Text[250];
+    VAR
+      PrinterSelection@1001 : Record 78;
+      PrinterName@1002 : Text[250];
+    BEGIN
+      CLEAR(PrinterSelection);
+
+      IF NOT PrinterSelection.GET(USERID,ReportID) THEN
+        IF NOT PrinterSelection.GET('',ReportID) THEN
+          IF NOT PrinterSelection.GET(USERID,0) THEN
+            IF PrinterSelection.GET('',0) THEN;
+      PrinterName := PrinterSelection."Printer Name";
+      OnAfterFindPrinter(ReportID,PrinterName);
+      EXIT(PrinterName);
+    END;
+
+    PROCEDURE ApplicationVersion@2() : Text[80];
+    VAR
+      AppVersion@1000 : Text[80];
+    BEGIN
+      AppVersion := CustomApplicationVersion('GB Dynamics NAV 10.0');
+      OnAfterGetApplicationVersion(AppVersion);
+      EXIT(AppVersion);
+    END;
+
+    LOCAL PROCEDURE CustomApplicationVersion@1051(BaseBuildVersion@1000 : Text[80]) : Text[80];
+    BEGIN
+      EXIT(BaseBuildVersion);
+    END;
+
+    PROCEDURE ApplicationBuild@3() : Text[80];
+    BEGIN
+      EXIT(CustomApplicationBuild('18976'));
+    END;
+
+    LOCAL PROCEDURE CustomApplicationBuild@1050(BaseBuildNumber@1000 : Text[80]) : Text[80];
+    BEGIN
+      EXIT(BaseBuildNumber);
+    END;
+
+    PROCEDURE ApplicationLanguage@4() : Integer;
+    BEGIN
+      EXIT(1033);
+    END;
+
+    PROCEDURE DefaultRoleCenter@50() : Integer;
+    VAR
+      ConfPersMgt@1000 : Codeunit 9170;
+      DefaultRoleCenterID@1001 : Integer;
+    BEGIN
+      DefaultRoleCenterID := ConfPersMgt.DefaultRoleCenterID;
+      OnAfterGetDefaultRoleCenter(DefaultRoleCenterID);
+      EXIT(DefaultRoleCenterID);
+    END;
+
+    PROCEDURE MakeDateTimeText@114(VAR DateTimeText@1000 : Text[250]) : Integer;
+    BEGIN
+      EXIT(TextManagement.MakeDateTimeText(DateTimeText));
+    END;
+
+    PROCEDURE GetSeparateDateTime@10011(DateTimeText@1000 : Text[250];VAR Date@1005 : Date;VAR Time@1006 : Time) : Boolean;
+    BEGIN
+      EXIT(TextManagement.GetSeparateDateTime(DateTimeText,Date,Time));
+    END;
+
+    PROCEDURE MakeDateText@105(VAR DateText@1000 : Text[250]) : Integer;
+    VAR
+      Position@1001 : Integer;
+    BEGIN
+      Position := TextManagement.MakeDateText(DateText);
+      OnAfterMakeDateText(Position,DateText);
+      EXIT(Position);
+    END;
+
+    PROCEDURE MakeTimeText@106(VAR TimeText@1000 : Text[250]) : Integer;
+    VAR
+      Position@1001 : Integer;
+    BEGIN
+      Position := TextManagement.MakeTimeText(TimeText);
+      OnAfterMakeTimeText(Position,TimeText);
+      EXIT(Position);
+    END;
+
+    PROCEDURE MakeText@107(VAR Text@1000 : Text[250]) : Integer;
+    VAR
+      Position@1001 : Integer;
+    BEGIN
+      Position := TextManagement.MakeText(Text);
+      OnAfterMakeText(Position,Text);
+      EXIT(Position);
+    END;
+
+    PROCEDURE MakeDateTimeFilter@214(VAR DateTimeFilterText@1000 : Text[250]) : Integer;
+    VAR
+      Position@1001 : Integer;
+    BEGIN
+      Position := TextManagement.MakeDateTimeFilter(DateTimeFilterText);
+      OnAfterMakeDateTimeFilter(Position,DateTimeFilterText);
+      EXIT(Position);
+    END;
+
+    PROCEDURE MakeDateFilter@205(VAR DateFilterText@1000 : Text) : Integer;
+    VAR
+      Position@1001 : Integer;
+    BEGIN
+      Position := TextManagement.MakeDateFilter(DateFilterText);
+      OnAfterMakeDateFilter(Position,DateFilterText);
+      EXIT(Position);
+    END;
+
+    PROCEDURE MakeTextFilter@207(VAR TextFilterText@1000 : Text) : Integer;
+    VAR
+      Position@1001 : Integer;
+    BEGIN
+      Position := TextManagement.MakeTextFilter(TextFilterText);
+      OnAfterMakeTextFilter(Position,TextFilterText);
+      EXIT(Position);
+    END;
+
+    PROCEDURE MakeCodeFilter@209(VAR TextFilterText@1000 : Text) : Integer;
+    VAR
+      Position@1001 : Integer;
+    BEGIN
+      Position := TextManagement.MakeTextFilter(TextFilterText);
+      OnAfterMakeCodeFilter(Position,TextFilterText);
+      EXIT(Position);
+    END;
+
+    PROCEDURE MakeTimeFilter@206(VAR TimeFilterText@1000 : Text[250]) : Integer;
+    VAR
+      Position@1001 : Integer;
+    BEGIN
+      Position := TextManagement.MakeTimeFilter(TimeFilterText);
+      OnAfterMakeTimeFilter(Position,TimeFilterText);
+      EXIT(Position);
+    END;
+
+    PROCEDURE AutoFormatTranslate@12(AutoFormatType@1000 : Integer;AutoFormatExpr@1001 : Text[80]) : Text[80];
+    VAR
+      AutoFormatTranslation@1002 : Text[80];
+    BEGIN
+      AutoFormatTranslation := AutoFormatManagement.AutoFormatTranslate(AutoFormatType,AutoFormatExpr);
+      OnAfterAutoFormatTranslate(AutoFormatType,AutoFormatExpr,AutoFormatTranslation);
+      EXIT(AutoFormatTranslation);
+    END;
+
+    PROCEDURE ReadRounding@14() : Decimal;
+    BEGIN
+      EXIT(AutoFormatManagement.ReadRounding);
+    END;
+
+    PROCEDURE CaptionClassTranslate@15(Language@1000 : Integer;CaptionExpr@1001 : Text[1024]) : Text[1024];
+    VAR
+      Caption@1002 : Text[1024];
+    BEGIN
+      Caption := CaptionManagement.CaptionClassTranslate(Language,CaptionExpr);
+      OnAfterCaptionClassTranslate(Language,CaptionExpr,Caption);
+      EXIT(Caption);
+    END;
+
+    PROCEDURE GetCueStyle@16(TableId@1000 : Integer;FieldNo@1002 : Integer;CueValue@1001 : Decimal) : Text;
+    VAR
+      CueSetup@1003 : Codeunit 9701;
+    BEGIN
+      EXIT(CueSetup.GetCustomizedCueStyle(TableId,FieldNo,CueValue));
+    END;
+
+    PROCEDURE SetGlobalLanguage@5();
+    BEGIN
+      LanguageManagement.SetGlobalLanguage;
+    END;
+
+    PROCEDURE ValidateApplicationlLanguage@1102601001(LanguageID@1037 : Integer);
+    BEGIN
+      LanguageManagement.ValidateApplicationLanguage(LanguageID);
+    END;
+
+    PROCEDURE LookupApplicationlLanguage@1102601005(VAR LanguageID@1040 : Integer);
+    BEGIN
+      LanguageManagement.LookupApplicationLanguage(LanguageID);
+    END;
+
+    PROCEDURE GetGlobalTableTriggerMask@20(TableID@1000 : Integer) : Integer;
+    VAR
+      TableTriggerMask@1001 : Integer;
+    BEGIN
+      // Replaced by GetDatabaseTableTriggerSetup
+      OnAfterGetGlobalTableTriggerMask(TableID,TableTriggerMask);
+      EXIT(TableTriggerMask);
+    END;
+
+    PROCEDURE OnGlobalInsert@21(RecRef@1000 : RecordRef);
+    BEGIN
+      // Replaced by OnDataBaseInsert. This trigger is only called from pages.
+      OnAfterOnGlobalInsert(RecRef);
+    END;
+
+    PROCEDURE OnGlobalModify@22(RecRef@1000 : RecordRef;xRecRef@1002 : RecordRef);
+    BEGIN
+      // Replaced by OnDataBaseModify. This trigger is only called from pages.
+      OnAfterOnGlobalModify(RecRef,xRecRef);
+    END;
+
+    PROCEDURE OnGlobalDelete@23(RecRef@1000 : RecordRef);
+    BEGIN
+      // Replaced by OnDataBaseDelete. This trigger is only called from pages.
+      OnAfterOnGlobalDelete(RecRef);
+    END;
+
+    PROCEDURE OnGlobalRename@24(RecRef@1000 : RecordRef;xRecRef@1002 : RecordRef);
+    BEGIN
+      // Replaced by OnDataBaseRename. This trigger is only called from pages.
+      OnAfterOnGlobalRename(RecRef,xRecRef);
+    END;
+
+    PROCEDURE GetDatabaseTableTriggerSetup@25(TableId@1000 : Integer;VAR OnDatabaseInsert@1001 : Boolean;VAR OnDatabaseModify@1002 : Boolean;VAR OnDatabaseDelete@1003 : Boolean;VAR OnDatabaseRename@1004 : Boolean);
+    VAR
+      IntegrationManagement@1005 : Codeunit 5150;
+      ChangeLogMgt@1006 : Codeunit 423;
+    BEGIN
+      ChangeLogMgt.GetDatabaseTableTriggerSetup(TableId,OnDatabaseInsert,OnDatabaseModify,OnDatabaseDelete,OnDatabaseRename);
+      IntegrationManagement.GetDatabaseTableTriggerSetup(TableId,OnDatabaseInsert,OnDatabaseModify,OnDatabaseDelete,OnDatabaseRename);
+      OnAfterGetDatabaseTableTriggerSetup(TableId,OnDatabaseInsert,OnDatabaseModify,OnDatabaseDelete,OnDatabaseRename);
+    END;
+
+    PROCEDURE OnDatabaseInsert@26(RecRef@1000 : RecordRef);
+    VAR
+      IntegrationManagement@1001 : Codeunit 5150;
+      ChangeLogMgt@1002 : Codeunit 423;
+    BEGIN
+      ChangeLogMgt.LogInsertion(RecRef);
+      IntegrationManagement.OnDatabaseInsert(RecRef);
+      OnAfterOnDatabaseInsert(RecRef);
+    END;
+
+    PROCEDURE OnDatabaseModify@27(RecRef@1000 : RecordRef);
+    VAR
+      IntegrationManagement@1001 : Codeunit 5150;
+      ChangeLogMgt@1002 : Codeunit 423;
+    BEGIN
+      ChangeLogMgt.LogModification(RecRef);
+      IntegrationManagement.OnDatabaseModify(RecRef);
+      OnAfterOnDatabaseModify(RecRef);
+    END;
+
+    PROCEDURE OnDatabaseDelete@28(RecRef@1000 : RecordRef);
+    VAR
+      IntegrationManagement@1001 : Codeunit 5150;
+      ChangeLogMgt@1002 : Codeunit 423;
+    BEGIN
+      ChangeLogMgt.LogDeletion(RecRef);
+      IntegrationManagement.OnDatabaseDelete(RecRef);
+      OnAfterOnDatabaseDelete(RecRef);
+    END;
+
+    PROCEDURE OnDatabaseRename@29(RecRef@1000 : RecordRef;xRecRef@1001 : RecordRef);
+    VAR
+      IntegrationManagement@1002 : Codeunit 5150;
+      ChangeLogMgt@1003 : Codeunit 423;
+    BEGIN
+      ChangeLogMgt.LogRename(RecRef,xRecRef);
+      IntegrationManagement.OnDatabaseRename(RecRef,xRecRef);
+      OnAfterOnDatabaseRename(RecRef,xRecRef);
+    END;
+
+    PROCEDURE OnDebuggerBreak@55(ErrorMessage@1000 : Text);
+    BEGIN
+      DebuggerManagement.ProcessDebuggerBreak(ErrorMessage);
+    END;
+
+    PROCEDURE LaunchDebugger@60();
+    BEGIN
+      PAGE.RUN(PAGE::"Session List");
+    END;
+
+    PROCEDURE OpenSettings@65();
+    BEGIN
+      PAGE.RUN(PAGE::"My Settings");
+    END;
+
+    PROCEDURE OpenContactMSSales@6();
+    BEGIN
+      PAGE.RUN(PAGE::"Contact MS Sales");
+    END;
+
+    PROCEDURE OpenExtensionMarketplace@8();
+    BEGIN
+      PAGE.RUN(PAGE::"Extension Marketplace");
+    END;
+
+    PROCEDURE CustomizeChart@70(VAR TempChart@1000 : TEMPORARY Record 2000000078) : Boolean;
+    VAR
+      GenericChartMgt@1001 : Codeunit 9180;
+    BEGIN
+      EXIT(GenericChartMgt.ChartCustomization(TempChart));
+    END;
+
+    PROCEDURE HasCustomLayout@76(ObjectType@1004 : 'Report,Page';ObjectID@1000 : Integer) : Integer;
+    VAR
+      ReportLayoutSelection@1003 : Record 9651;
+    BEGIN
+      // Return value:
+      // 0: No custom layout
+      // 1: RDLC layout
+      // 2: Word layout
+      IF ObjectType <> ObjectType::Report THEN
+        ERROR(NotSupportedErr);
+
+      EXIT(ReportLayoutSelection.HasCustomLayout(ObjectID));
+    END;
+
+    PROCEDURE MergeDocument@77(ObjectType@1006 : 'Report,Page';ObjectID@1000 : Integer;ReportAction@1001 : 'SaveAsPdf,SaveAsWord,SaveAsExcel,Preview,Print,SaveAsHtml';XmlData@1002 : InStream;FileName@1003 : Text);
+    VAR
+      DocumentReportMgt@1004 : Codeunit 9651;
+    BEGIN
+      IF ObjectType <> ObjectType::Report THEN
+        ERROR(NotSupportedErr);
+
+      DocumentReportMgt.MergeWordLayout(ObjectID,ReportAction,XmlData,FileName);
+    END;
+
+    PROCEDURE ReportGetCustomRdlc@78(ReportId@1000 : Integer) : Text;
+    VAR
+      CustomReportLayout@1002 : Record 9650;
+    BEGIN
+      EXIT(CustomReportLayout.GetCustomRdlc(ReportId));
+    END;
+
+    PROCEDURE ReportScheduler@79(ReportId@1000 : Integer;RequestPageXml@1001 : Text) : Boolean;
+    VAR
+      ScheduleAReport@1002 : Page 682;
+    BEGIN
+      EXIT(ScheduleAReport.ScheduleAReport(ReportId,RequestPageXml));
+    END;
+
+    [Integration]
+    LOCAL PROCEDURE OnAfterGetApplicationVersion@1(VAR AppVersion@1000 : Text[80]);
+    BEGIN
+    END;
+
+    [Integration]
+    LOCAL PROCEDURE OnBeforeCompanyOpen@1010();
+    BEGIN
+    END;
+
+    [Integration]
+    LOCAL PROCEDURE OnAfterCompanyOpen@1007();
+    BEGIN
+    END;
+
+    [Integration]
+    LOCAL PROCEDURE OnBeforeCompanyClose@1017();
+    BEGIN
+    END;
+
+    [Integration]
+    LOCAL PROCEDURE OnAfterCompanyClose@1013();
+    BEGIN
+    END;
+
+    [Integration]
+    LOCAL PROCEDURE OnAfterGetSystemIndicator@1018(VAR Text@1000 : Text[250];VAR Style@1001 : 'Standard,Accent1,Accent2,Accent3,Accent4,Accent5,Accent6,Accent7,Accent8,Accent9');
+    BEGIN
+    END;
+
+    [Integration]
+    LOCAL PROCEDURE OnAfterFindPrinter@1023(ReportID@1000 : Integer;VAR PrinterName@1001 : Text[250]);
+    BEGIN
+    END;
+
+    [Integration]
+    LOCAL PROCEDURE OnAfterGetDefaultRoleCenter@1033(VAR DefaultRoleCenterID@1000 : Integer);
+    BEGIN
+    END;
+
+    [Integration]
+    LOCAL PROCEDURE OnAfterMakeDateText@1036(VAR Position@1000 : Integer;VAR DateText@1001 : Text[250]);
+    BEGIN
+    END;
+
+    [Integration]
+    LOCAL PROCEDURE OnAfterMakeTimeText@1039(VAR Position@1001 : Integer;VAR TimeText@1000 : Text[250]);
+    BEGIN
+    END;
+
+    [Integration]
+    LOCAL PROCEDURE OnAfterMakeText@1040(VAR Position@1001 : Integer;VAR Text@1000 : Text[250]);
+    BEGIN
+    END;
+
+    [Integration]
+    LOCAL PROCEDURE OnAfterMakeDateTimeFilter@1045(VAR Position@1001 : Integer;VAR DateTimeFilterText@1000 : Text[250]);
+    BEGIN
+    END;
+
+    [Integration]
+    LOCAL PROCEDURE OnAfterMakeDateFilter@1046(VAR Position@1001 : Integer;VAR DateFilterText@1000 : Text);
+    BEGIN
+    END;
+
+    [Integration]
+    LOCAL PROCEDURE OnAfterMakeTextFilter@1047(VAR Position@1001 : Integer;VAR TextFilterText@1000 : Text);
+    BEGIN
+    END;
+
+    [Integration]
+    LOCAL PROCEDURE OnAfterMakeCodeFilter@1052(VAR Position@1001 : Integer;VAR TextFilterText@1000 : Text);
+    BEGIN
+    END;
+
+    [Integration]
+    LOCAL PROCEDURE OnAfterMakeTimeFilter@1053(VAR Position@1001 : Integer;VAR TimeFilterText@1000 : Text[250]);
+    BEGIN
+    END;
+
+    [Integration]
+    LOCAL PROCEDURE OnAfterAutoFormatTranslate@1056(AutoFormatType@1001 : Integer;AutoFormatExpression@1000 : Text[80];VAR AutoFormatTranslation@1002 : Text[80]);
+    BEGIN
+    END;
+
+    [Integration]
+    LOCAL PROCEDURE OnAfterCaptionClassTranslate@1061(Language@1001 : Integer;CaptionExpression@1000 : Text[1024];VAR Caption@1002 : Text[1024]);
+    BEGIN
+    END;
+
+    [Integration]
+    LOCAL PROCEDURE OnAfterGetGlobalTableTriggerMask@1001(TableID@1000 : Integer;VAR TableTriggerMask@1002 : Integer);
+    BEGIN
+    END;
+
+    [Integration]
+    LOCAL PROCEDURE OnAfterOnGlobalInsert@1002(RecRef@1000 : RecordRef);
+    BEGIN
+    END;
+
+    [Integration]
+    LOCAL PROCEDURE OnAfterOnGlobalModify@1003(RecRef@1000 : RecordRef;xRecRef@1002 : RecordRef);
+    BEGIN
+    END;
+
+    [Integration]
+    LOCAL PROCEDURE OnAfterOnGlobalDelete@1004(RecRef@1000 : RecordRef);
+    BEGIN
+    END;
+
+    [Integration]
+    LOCAL PROCEDURE OnAfterOnGlobalRename@1005(RecRef@1000 : RecordRef;xRecRef@1002 : RecordRef);
+    BEGIN
+    END;
+
+    [Integration]
+    LOCAL PROCEDURE OnAfterGetDatabaseTableTriggerSetup@1020(TableId@1000 : Integer;VAR OnDatabaseInsert@1001 : Boolean;VAR OnDatabaseModify@1002 : Boolean;VAR OnDatabaseDelete@1003 : Boolean;VAR OnDatabaseRename@1004 : Boolean);
+    BEGIN
+    END;
+
+    [Integration]
+    LOCAL PROCEDURE OnAfterOnDatabaseInsert@1035(RecRef@1000 : RecordRef);
+    BEGIN
+    END;
+
+    [Integration]
+    LOCAL PROCEDURE OnAfterOnDatabaseModify@1034(RecRef@1000 : RecordRef);
+    BEGIN
+    END;
+
+    [Integration]
+    LOCAL PROCEDURE OnAfterOnDatabaseDelete@1032(RecRef@1000 : RecordRef);
+    BEGIN
+    END;
+
+    [Integration]
+    LOCAL PROCEDURE OnAfterOnDatabaseRename@1024(RecRef@1000 : RecordRef;xRecRef@1001 : RecordRef);
+    BEGIN
+    END;
+
+    [Integration]
+    PROCEDURE OnEditInExcel@82(ObjectId@1002 : Integer);
+    BEGIN
+    END;
+
+    PROCEDURE "*COSL*"@1000000007();
+    BEGIN
+    END;
+
+    PROCEDURE UOMCaption@1000000001(CaptionExpr@1000000000 : Text[80]) : Text[80];
+    VAR
+      locJob@1000000002 : Record 167;
+      locFieldNo@1000000003 : Text[30];
+      locTmpStr@1000000004 : Text[50];
+      locCommaPos@1000000001 : Integer;
+      locCaptionRef@1000000005 : Text[80];
+      locCaption@1000000006 : Text[50];
+      locJobNo@1000000007 : Text[30];
+    BEGIN
+      // *UOMCaption
+
+      locCommaPos := STRPOS(CaptionExpr,',');
+      locFieldNo := COPYSTR(CaptionExpr,1,locCommaPos - 1);
+      locCaptionRef := COPYSTR(CaptionExpr,locCommaPos + 1);
+      locCommaPos := STRPOS(locCaptionRef,',');
+      locCaption :=  COPYSTR(COPYSTR(locCaptionRef,1,locCommaPos - 1),1,50);
+      locJobNo := COPYSTR(locCaptionRef,locCommaPos + 1);
+
+      locJob.RESET;
+
+      IF NOT locJob.GET(locJobNo) THEN
+        EXIT(locCaption);
+
+      CASE locFieldNo OF
+        '14':
+          IF locJob."Bore - Arriving UOM" <> '' THEN BEGIN
+            locTmpStr := ' (' + locJob."Bore - Arriving UOM" + ')';
+            EXIT(locCaption + locTmpStr);
+          END ELSE
+            EXIT(locCaption);
+
+        '16':
+          IF locJob."Bore - Branch UOM" <> '' THEN BEGIN
+            locTmpStr := ' (' + locJob."Bore - Branch UOM" + ')';
+            EXIT(locCaption + locTmpStr);
+          END ELSE
+            EXIT(locCaption);
+
+        '18':
+          IF locJob."Bore - Leaving UOM" <> '' THEN BEGIN
+            locTmpStr := ' (' + locJob."Bore - Leaving UOM" + ')';
+            EXIT(locCaption + locTmpStr);
+          END ELSE
+            EXIT(locCaption);
+
+        '20':
+          IF locJob."Bore - Nominal UOM" <> '' THEN BEGIN
+            locTmpStr := ' (' + locJob."Bore - Nominal UOM" + ')';
+            EXIT(locCaption + locTmpStr);
+          END ELSE
+            EXIT(locCaption);
+
+        '22':
+          IF locJob."Capacity Performance UOM" <> '' THEN BEGIN
+            locTmpStr := ' (' + locJob."Capacity Performance UOM" + ')';
+            EXIT(locCaption + locTmpStr);
+          END ELSE
+            EXIT(locCaption);
+
+        '34':
+          IF locJob."Density (Operational) UOM" <> '' THEN BEGIN
+            locTmpStr := ' (' + locJob."Density (Operational) UOM" + ')';
+            EXIT(locCaption + locTmpStr);
+          END ELSE
+            EXIT(locCaption);
+
+        '38':
+          IF locJob."Diameter UOM" <> '' THEN BEGIN
+            locTmpStr := ' (' + locJob."Diameter UOM" + ')';
+            EXIT(locCaption + locTmpStr);
+          END ELSE
+            EXIT(locCaption);
+
+        '40':
+          IF locJob."Diff. Head UOM" <> '' THEN BEGIN
+            locTmpStr := ' (' + locJob."Diff. Head UOM" + ')';
+            EXIT(locCaption + locTmpStr);
+          END ELSE
+            EXIT(locCaption);
+
+        '44':
+          IF locJob."Driver Rating (Mechanical) UOM" <> '' THEN BEGIN
+            locTmpStr := ' (' + locJob."Driver Rating (Mechanical) UOM" + ')';
+            EXIT(locCaption + locTmpStr);
+          END ELSE
+            EXIT(locCaption);
+
+        '52':
+          IF locJob."Flow (Actual - design) UOM" <> '' THEN BEGIN
+            locTmpStr := ' (' + locJob."Flow (Actual - design) UOM" + ')';
+            EXIT(locCaption + locTmpStr);
+          END ELSE
+            EXIT(locCaption);
+
+        '54':
+          IF locJob."Flow (Standard - design) UOM" <> '' THEN BEGIN
+            locTmpStr := ' (' + locJob."Flow (Standard - design) UOM" + ')';
+            EXIT(locCaption + locTmpStr);
+          END ELSE
+            EXIT(locCaption);
+
+        '56':
+          IF locJob."Heat Duty UOM" <> '' THEN BEGIN
+            locTmpStr := ' (' + locJob."Heat Duty UOM" + ')';
+            EXIT(locCaption + locTmpStr);
+          END ELSE
+            EXIT(locCaption);
+
+        '62':
+          IF locJob."Insulation Thickness UOM" <> '' THEN BEGIN
+            locTmpStr := ' (' + locJob."Insulation Thickness UOM" + ')';
+            EXIT(locCaption + locTmpStr);
+          END ELSE
+            EXIT(locCaption);
+
+        '64':
+          IF locJob."Internal Volume UOM" <> '' THEN BEGIN
+            locTmpStr := ' (' + locJob."Internal Volume UOM" + ')';
+            EXIT(locCaption + locTmpStr);
+          END ELSE
+            EXIT(locCaption);
+
+        '84':
+          IF locJob."Motor Rating UOM" <> '' THEN BEGIN
+            locTmpStr := ' (' + locJob."Motor Rating UOM" + ')';
+            EXIT(locCaption + locTmpStr);
+          END ELSE
+            EXIT(locCaption);
+
+        '102':
+          IF locJob."Power Rating (Absorbed) UOM" <> '' THEN BEGIN
+            locTmpStr := ' (' + locJob."Power Rating (Absorbed) UOM" + ')';
+            EXIT(locCaption + locTmpStr);
+          END ELSE
+            EXIT(locCaption);
+
+        '104':
+          IF locJob."Power Rating (Consumed) UOM" <> '' THEN BEGIN
+            locTmpStr := ' (' + locJob."Power Rating (Consumed) UOM" + ')';
+            EXIT(locCaption + locTmpStr);
+          END ELSE
+            EXIT(locCaption);
+
+        '106':
+          IF locJob."Pressure (Design) UOM" <> '' THEN BEGIN
+            locTmpStr := ' (' + locJob."Pressure (Design) UOM" + ')';
+            EXIT(locCaption + locTmpStr);
+          END ELSE
+            EXIT(locCaption);
+
+        '108':
+          IF locJob."Pressure (Operational) UOM" <> '' THEN BEGIN
+            locTmpStr := ' (' + locJob."Pressure (Operational) UOM" + ')';
+            EXIT(locCaption + locTmpStr);
+          END ELSE
+            EXIT(locCaption);
+
+        '124':
+          IF locJob."Size UOM" <> '' THEN BEGIN
+            locTmpStr := ' (' + locJob."Size UOM" + ')';
+            EXIT(locCaption + locTmpStr);
+          END ELSE
+            EXIT(locCaption);
+
+        '126':
+          IF locJob."T/T (Length) UOM" <> '' THEN BEGIN
+            locTmpStr := ' (' + locJob."T/T (Length) UOM" + ')';
+            EXIT(locCaption + locTmpStr);
+          END ELSE
+            EXIT(locCaption);
+
+        '130':
+          IF locJob."Temperature (Design) UOM" <> '' THEN BEGIN
+            locTmpStr := ' (' + locJob."Temperature (Design) UOM" + ')';
+            EXIT(locCaption + locTmpStr);
+          END ELSE
+            EXIT(locCaption);
+
+        '132':
+          IF locJob."Temperature (Operational) UOM" <> '' THEN BEGIN
+            locTmpStr := ' (' + locJob."Temperature (Operational) UOM" + ')';
+            EXIT(locCaption + locTmpStr);
+          END ELSE
+            EXIT(locCaption);
+
+        '134':
+          IF locJob."Test Pressure (barg) UOM" <> '' THEN BEGIN
+            locTmpStr := ' (' + locJob."Test Pressure (barg) UOM" + ')';
+            EXIT(locCaption + locTmpStr);
+          END ELSE
+            EXIT(locCaption);
+
+        '138':
+          IF locJob."Weight - Dry UOM" <> '' THEN BEGIN
+            locTmpStr := ' (' + locJob."Weight - Dry UOM" + ')';
+            EXIT(locCaption + locTmpStr);
+          END ELSE
+            EXIT(locCaption);
+
+        '140':
+          IF locJob."Weight - Hydrostatic UOM" <> '' THEN BEGIN
+            locTmpStr := ' (' + locJob."Weight - Hydrostatic UOM" + ')';
+            EXIT(locCaption + locTmpStr);
+          END ELSE
+            EXIT(locCaption);
+
+        '142':
+          IF locJob."Weight - Operating UOM" <> '' THEN BEGIN
+            locTmpStr := ' (' + locJob."Weight - Operating UOM" + ')';
+            EXIT(locCaption + locTmpStr);
+          END ELSE
+            EXIT(locCaption);
+
+        '235':
+          IF locJob."Length UOM" <> '' THEN BEGIN
+            locTmpStr := ' (' +  locJob."Length UOM" + ')';
+            EXIT(locCaption + locTmpStr);
+          END ELSE
+            EXIT(locCaption);
+
+        '236':
+          IF locJob."Width UOM" <> '' THEN BEGIN
+            locTmpStr := ' (' +  locJob."Width UOM" + ')';
+            EXIT(locCaption + locTmpStr);
+          END ELSE
+            EXIT(locCaption);
+
+        '237':
+          IF locJob."Height UOM" <> '' THEN BEGIN
+            locTmpStr := ' (' +  locJob."Height UOM" + ')';
+            EXIT(locCaption + locTmpStr);
+          END ELSE
+            EXIT(locCaption);
+
+        '291':
+          IF locJob."Face To Face UOM" <> '' THEN BEGIN
+            locTmpStr := ' (' + locJob."Face To Face UOM" + ')';
+            EXIT(locCaption + locTmpStr);
+          END ELSE
+            EXIT(locCaption);
+
+         '316': // Client Tag Segment 1
+            EXIT(locCaption);
+
+         '317': // Client Tag Segment 2
+            EXIT(locCaption);
+
+         '318': // Client Tag Segment 3
+            EXIT(locCaption);
+
+         '319': // Client Tag Segment 4
+            EXIT(locCaption);
+
+         '323': // Client Tag Segment 5
+            EXIT(locCaption);
+
+         '324': // Client Tag Segment 6
+            EXIT(locCaption);
+
+         '325': // Client Tag Segment 7
+            EXIT(locCaption);
+
+         '326': // Client Tag Segment 8
+            EXIT(locCaption);
+
+      END;
+
+
+      EXIT(locCaption);
+    END;
+
+    PROCEDURE CheckMappedDrive@1000000002();
+    VAR
+      locJobsSetup@1000000000 : Record 315;
+      locDrive@1000000001 : Record 2000000020;
+      i@1000000002 : Integer;
+      locTxtMsg1000000003@1000000003 : TextConst 'ENG=The mapped drive %1 cannot be found or is not currently available.\This will cause errors to occur within NADIA.\\Contact your system administrator for assistance.';
+      locDriveName@1000000004 : Text[30];
+    BEGIN
+      // *CheckMappedDrive
+      //NAV2009 UPGRADE NOTE: ENTIRE FUNCTION WAS FOUND COMMENTED IN RELEASE 517 CODE...
+    END;
+
+    PROCEDURE LCYCaptionClassTranslate@1000000004(Language@1000000001 : Integer;CaptionExpr@1000000000 : Text[80]) : Text[30];
+    VAR
+      locLCYPos@1000000002 : Integer;
+      GLSetup@1000000003 : Record 98;
+    BEGIN
+      // *LCYCaptionClassTranslate
+
+      GLSetup.GET;
+      locLCYPos := STRPOS(CaptionExpr,'LCY');
+      IF locLCYPos = 0 THEN
+        EXIT(COPYSTR(STRSUBSTNO('%1 (%2)',CaptionExpr,GLSetup."LCY Code"),1,30))
+      ELSE
+        EXIT(COPYSTR(
+        COPYSTR(CaptionExpr,1,locLCYPos-1)+GLSetup."LCY Code"+COPYSTR(CaptionExpr,locLCYPos+3),1,30));
+    END;
+
+    PROCEDURE ProjectCurrencyCodeTranslate@1000000008(CaptionExpr@1000000002 : Text[80];ProjectId@1000000004 : Code[10]) : Text[50];
+    VAR
+      locProjectRec@1000000000 : Record 167;
+      locPurchasingCompanyRec@1000000001 : Record 50030;
+      locLCYPos@1000000005 : Integer;
+      locNewCaption@1000000003 : Text[50];
+    BEGIN
+      // *ProjectCurrencyCodeTranslate
+
+      locProjectRec.RESET;
+      IF NOT locProjectRec.GET(ProjectId) THEN
+        EXIT(CaptionExpr);
+
+      locPurchasingCompanyRec.RESET;
+      locPurchasingCompanyRec.GET(locPurchasingCompanyRec."Company Type"::Company, locProjectRec."Company No.");
+      locLCYPos := STRPOS(CaptionExpr,'(LCY)');
+      IF locLCYPos = 0 THEN BEGIN
+        locLCYPos := STRPOS(CaptionExpr,'LCY');
+        IF locLCYPos = 0 THEN
+          locNewCaption := COPYSTR(STRSUBSTNO('%1 (%2)',CaptionExpr,locPurchasingCompanyRec."Currency Code"),1,30)
+        ELSE
+          locNewCaption := COPYSTR(COPYSTR(CaptionExpr,1,locLCYPos-1) + '(' +
+                           locPurchasingCompanyRec."Currency Code" + ')' +
+                           COPYSTR(CaptionExpr,locLCYPos+3),1,30);
+      END ELSE BEGIN
+        locNewCaption := COPYSTR(COPYSTR(CaptionExpr,1,locLCYPos-1) + '(' +
+                           locPurchasingCompanyRec."Currency Code" + ')' +
+                           COPYSTR(CaptionExpr,locLCYPos+5),1,30);
+      END;
+
+      EXIT(locNewCaption);
+    END;
+
+    PROCEDURE GetExecutablesVersion@1000000003() : Text[30];
+    VAR
+      locFileTable@1000000000 : Record 2000000022;
+      locFileManagement@1000000001 : Codeunit 419;
+      locDefaultVal@1000000002 : Text[30];
+      locPath@1000000003 : Text[200];
+      locInt@1000000004 : Integer;
+    BEGIN
+      // *GetExecutablesVersion()
+
+      //the following line forces a refresh of this table
+      locFileTable.SETFILTER(Path,'%1','C:/');
+
+      //locDefaultVal := '4.0000';
+      locDefaultVal := '3.0000';
+      locInt := 0;
+
+      locFileTable.SETFILTER(Path,'%1','*');
+      locFileTable.SETRANGE("Is a file",TRUE);
+      locFileTable.SETFILTER(Name,'%1','finsql.exe');
+      IF locFileTable.FIND('-') THEN
+         REPEAT
+            locPath := locFileTable.Path;
+            locInt := locInt + 1;
+         UNTIL locFileTable.NEXT = 0;
+
+      IF locInt = 1 THEN
+         EXIT(locFileManagement.GetFileProperty(9,locPath,'finsql.exe'))
+      ELSE
+         EXIT(locDefaultVal);
+    END;
+
+    PROCEDURE ClearViewPDFLocalTempFolder@1000000005();
+    VAR
+      ltbJobSetup@1000000000 : Record 315;
+      ltblFileRecord@1000000002 : Record 2000000022;
+      locPath@1000000001 : Text[250];
+      lBatchFile@1000000003 : File;
+      locReturnValue@1000000004 : Integer;
+    BEGIN
+      // *ClearViewPDFLocalTempFolder
+
+      ltbJobSetup.GET;
+      IF ltbJobSetup."View PDF Local Temp Folder" = '' THEN
+        EXIT;
+
+      IF NOT mdlFileMgt.IsPathValid(ltbJobSetup."View PDF Local Temp Folder") THEN
+        ltbJobSetup.VALIDATE("View PDF Local Temp Folder",TEMPORARYPATH);
+      IF STRPOS(ltbJobSetup."View PDF Local Temp Folder",'%USERID%') <> 0 THEN
+         locPath := mdlCOSLUtils.ReplaceStr(ltbJobSetup."View PDF Local Temp Folder",'%USERID%',USERID)
+      ELSE
+         locPath :=ltbJobSetup."View PDF Local Temp Folder";
+
+      IF NOT EXISTS('C:\TEMP\NavMakDir.bat') THEN BEGIN
+        lBatchFile.TEXTMODE(TRUE);
+        lBatchFile.CREATE('C:\TEMP\NavMakDir.bat');
+        lBatchFile.WRITE('mkdir '+COPYSTR(locPath,1,STRLEN(locPath)-1));
+        lBatchFile.CLOSE;
+        locReturnValue := mdlCOSLUtils.RunShellCommand('RUN','C:\TEMP\NavMakDir.bat','','',TRUE);
+        MESSAGE('The folder has now been created - you should not receive the message again.');
+      END;
+      ltblFileRecord.RESET;
+      ltblFileRecord.SETFILTER(Path,locPath);
+      ltblFileRecord.SETRANGE("Is a file",TRUE);
+      IF ltblFileRecord.FIND('-') THEN REPEAT
+        IF STRPOS(UPPERCASE(ltblFileRecord.Name),'.PDF') =  (STRLEN(ltblFileRecord.Name)-3) THEN    //-015 Line inserted
+           IF NOT ERASE(ltblFileRecord.Path+'\'+ltblFileRecord.Name) THEN;
+      UNTIL ltblFileRecord.NEXT = 0;
+    END;
+
+    PROCEDURE ClearViewPDFLocalTempFolderRTC@1000000009();
+    VAR
+      FileRecord@1000000004 : Record 2000000022;
+      JobSetup@1000000000 : Record 315;
+      ReturnValue@1000000003 : Integer;
+      filePath@1000000002 : Text[250];
+      tempFilePath@1000000005 : Text[1024];
+    BEGIN
+      // *ClearViewPDFLocalTempFolderRTC
+
+      //-001
+      tempFilePath := mdlFileMgt.GetTempPath(TRUE) + 'NAV-PDF\';
+
+      IF NOT mdlFileMgt.CheckDirectoryExists(tempFilePath,TRUE) THEN BEGIN
+        mdlFileMgt.CreateDirectory(tempFilePath,TRUE);
+      END;
+
+      ClearPDFFiles(tempFilePath);
+      //+001
+    END;
+
+    PROCEDURE ELClientColumnCaption@1000000006(pProjectCode@1000000004 : Code[20];pListType@1000000002 : Text[30];pDiscipline@1000000001 : Code[20];pFldName@1000000000 : Text[30]) : Text[80];
+    VAR
+      tblELClientColumnsFields@1000000003 : Record 50142;
+    BEGIN
+      // *ELClientColumnCaption()
+
+      tblELClientColumnsFields.RESET;
+      tblELClientColumnsFields.SETRANGE("Project Id",pProjectCode);
+      IF pListType <> '' THEN
+        tblELClientColumnsFields.SETRANGE("List Type",pListType);
+      IF pDiscipline <> '' THEN
+        tblELClientColumnsFields.SETRANGE(Discipline,pDiscipline);
+      IF NOT tblELClientColumnsFields.FINDFIRST THEN
+        tblELClientColumnsFields.SETRANGE(Discipline,'');
+
+      tblELClientColumnsFields.SETRANGE("Table Field Name",pFldName);
+
+      IF NOT tblELClientColumnsFields.FINDFIRST THEN
+        EXIT(pFldName);
+
+      EXIT(tblELClientColumnsFields."Client Column - Caption");
+    END;
+
+    PROCEDURE ClearPDFFiles@1000000000(filepath@1000000002 : Text[1024]);
+    VAR
+      FileInfo@1000000000 : DotNet "'mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.IO.FileInfo" RUNONCLIENT;
+      DirInfo@1000000001 : DotNet "'mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.IO.DirectoryInfo" RUNONCLIENT;
+      List@1000000003 : DotNet "'mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Collections.Generic.List`1" RUNONCLIENT;
+      Enumerator@1000000004 : DotNet "'mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Collections.IEnumerator" RUNONCLIENT;
+    BEGIN
+      // *ClearPDFFiles
+
+      //-001
+      DirInfo := DirInfo.DirectoryInfo(filepath);
+
+      List := DirInfo.GetFiles('*.PDF');
+      Enumerator := List.GetEnumerator();
+
+      WHILE Enumerator.MoveNext() DO BEGIN
+        FileInfo := Enumerator.Current();
+        mdlFileMgt.DeleteFile(filepath + FileInfo.Name(),TRUE);
+      END;
+      //+001
+    END;
+
+    PROCEDURE SBMDateFormatting@1000000010(DateString@1000000001 : Text[50]) : Text[50];
+    VAR
+      DayValue@1000000000 : Integer;
+      YearValue@1000000002 : Integer;
+      MonthString@1000000003 : Text[3];
+      MonthValue@1000000004 : Integer;
+      ResultingDate@1000000005 : Date;
+    BEGIN
+      // *SBMDateFormatting()
+
+      //-007
+      IF NOT EVALUATE(DayValue,COPYSTR(DateString,1,2)) THEN
+        EXIT(DateString);
+
+      IF NOT EVALUATE(YearValue,COPYSTR(DateString,8,2)) THEN
+        EXIT(DateString);
+
+      IF YearValue < 2000 THEN
+        YearValue := YearValue + 2000;
+
+      MonthString := COPYSTR(DateString,4,3);
+      CASE MonthString OF
+        'Jan':
+          MonthValue := 1;
+        'Feb':
+          MonthValue := 2;
+        'Mar':
+          MonthValue := 3;
+        'Apr':
+          MonthValue := 4;
+        'May':
+          MonthValue := 5;
+        'Jun':
+          MonthValue := 6;
+        'Jul':
+          MonthValue := 7;
+        'Aug':
+          MonthValue := 8;
+        'Sep':
+          MonthValue := 9;
+        'Oct':
+          MonthValue := 10;
+        'Nov':
+          MonthValue := 11;
+        'Dec':
+          MonthValue := 12;
+        ELSE
+          EXIT(DateString);
+      END;
+
+      ResultingDate := DMY2DATE(DayValue,MonthValue,YearValue);
+
+      EXIT(FORMAT(ResultingDate));
+      //+007
+    END;
+
+    BEGIN
+    END.
+  }
+}
+
