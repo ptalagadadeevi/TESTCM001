@@ -1,0 +1,80 @@
+OBJECT Page 50250 Shipment Packing List
+{
+  OBJECT-PROPERTIES
+  {
+    Date=13/08/13;
+    Time=14:46:56;
+    Modified=Yes;
+    Version List=SBM6.50.00;
+  }
+  PROPERTIES
+  {
+    SourceTable=Table50072;
+    PageType=List;
+    AutoSplitKey=Yes;
+    OnOpenPage=BEGIN
+                 CurrPage.EDITABLE(NOT gSetReadOnly);
+               END;
+
+    OnAfterGetRecord=BEGIN
+                       IF ("Packing List No." = '') AND ("gPackingListNo." <> '') THEN
+                           "Packing List No." := "gPackingListNo.";
+                     END;
+
+  }
+  CONTROLS
+  {
+    { 1900000001;0;Container;
+                ContainerType=ContentArea }
+
+    { 1   ;1   ;Group     ;
+                GroupType=Repeater }
+
+    { 10  ;2   ;Field     ;
+                SourceExpr="Packing List No." }
+
+    { 12  ;2   ;Field     ;
+                SourceExpr="No. of Boxes" }
+
+    { 14  ;2   ;Field     ;
+                SourceExpr=Weight }
+
+    { 1000000002;2;Field  ;
+                SourceExpr="Weight UOM" }
+
+    { 1000000000;2;Field  ;
+                SourceExpr=Dimensions }
+
+    { 16  ;2   ;Field     ;
+                SourceExpr=Comments }
+
+  }
+  CODE
+  {
+    VAR
+      gSetReadOnly@1000000000 : Boolean;
+      "gPackingListNo."@1000000001 : Text[30];
+
+    PROCEDURE SetFormReadOnly@1000000000(pReadOnly@1000000000 : Boolean);
+    BEGIN
+      // *SetFormReadOnly()
+
+      gSetReadOnly := pReadOnly;
+    END;
+
+    PROCEDURE SetPackingListNo@1000000001(pPackingListNo@1000000000 : Text[30]);
+    BEGIN
+      // *SetPackingListNo()
+
+      "gPackingListNo." := pPackingListNo;
+    END;
+
+    BEGIN
+    {
+      000 - MMJ - 13/08/2013 - SBM6.50.00
+                               Converted form to page
+    }
+    END.
+  }
+}
+
